@@ -649,7 +649,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/bash;
-			shellScript = "cd ../third_party/\n\nif [ -e built ]; then\n\texit 0\nfi\n\n# The following line is needed so make openssl works\nCOMMAND_MODE=unix2003\n\nmake clean\nmake\n\nif [ $? -eq 0 ] ; then\n    touch built\nelse\n    exit 1\nfi";
+			shellScript = "cd ../third_party/\n\n# Check whether third parties have been built\nif [ -e built ]; then\n\texit 0\nfi\n\n# The following line is needed so make openssl works\nCOMMAND_MODE=unix2003\n\n# If third parties have been configured then it is allowed\n# to clean it\nmake --dry-run clean >/dev/null 2>&1 \nif [ $? -eq 0 ] ; then\n    make clean\nfi\n\nmake\n\nif [ $? -eq 0 ] ; then\n    touch built\nelse\n    exit 1\nfi";
 		};
 /* End PBXShellScriptBuildPhase section */
 
