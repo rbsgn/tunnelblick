@@ -1,0 +1,198 @@
+From d2cbb22b0b9bcbfca59e54b985b13357bcdc57e1 Mon Sep 17 00:00:00 2001
+From: Roman Busyghin <nskboy@gmail.com>
+Date: Sat, 26 Mar 2011 17:22:40 +0300
+Subject: [PATCH] Allow compiling on 10.4.x, 10.5.x, and 10.6.x
+
+Applied a patch with a little modifications provided by Mohammad A. Haque (see http://sourceforge.net/tracker/?func=detail&aid=2889862&group_id=235725&atid=1097639 for details). Patch has been modified in a following way: use VALID_ARCHS provided by Xcode instead of creating list of supported architectures manually.
+
+Original patch didn't work for me because I have Xcode 4 installed without PPC support on my machine.
+
+Signed-off-by: Roman Busyghin <nskboy@gmail.com>
+---
+ src/tap/Makefile |   33 ++++++++++++++++++++++++++++-----
+ src/tun/Makefile |   31 +++++++++++++++++++++++++++----
+ src/tuntap.cc    |    4 ++++
+ src/tuntap.h     |   12 ++++++++++++
+ 4 files changed, 71 insertions(+), 9 deletions(-)
+
+diff --git src/tap/Makefile src/tap/Makefile
+index a87bc11..6b035c6 100644
+--- src/tap/Makefile
++++ src/tap/Makefile
+@@ -6,6 +6,13 @@
+ # (c) 2004, 2005, 2006, 2007, 2008 Mattias Nissler
+ #
+ 
++SDKROOT ?= $(shell ls -d /Developer/SDKs/* | tail -1)
++SDKVERSION = $(shell defaults read $(SDKROOT)/SDKSettings Version)
++
++MACOSX_DEPLOYMENT_TARGET ?= 10.4
++
++VALID_ARCHS ?= ppc i386 x86_64
++
+ OBJS = ../tuntap.o ../tuntap_mgr.o ../lock.o ../mem.o kmod.o tap.o
+ KMOD_BIN = tap
+ BUNDLE_DIR = ../..
+@@ -19,17 +26,34 @@ BUNDLE_SIGNATURE = ????
+ BUNDLE_PACKAGETYPE = KEXT
+ BUNDLE_VERSION = $(TAP_KEXT_VERSION)
+ 
+-INCLUDE = -I.. -I/System/Library/Frameworks/Kernel.framework/Headers
++INCLUDE = -I.. -I$(SDKROOT)/System/Library/Frameworks/Kernel.framework/Headers
++
+ CFLAGS = -Wall -mkernel -force_cpusubtype_ALL \
+-	-fno-builtin -fno-stack-protector -arch ppc -arch i386 -arch x86_64 \
++	-fno-builtin -fno-stack-protector \
++	-isysroot $(SDKROOT) \
++	-mmacosx-version-min=$(MACOSX_DEPLOYMENT_TARGET) \
+ 	-DKERNEL -D__APPLE__ -DKERNEL_PRIVATE -DTUNTAP_VERSION=\"$(TUNTAP_VERSION)\" \
+-	-DTAP_KEXT_VERSION=\"$(TAP_KEXT_VERSION)\"
++	-DTAP_KEXT_VERSION=\"$(TUN_KEXT_VERSION)\"
++
++LDFLAGS = -Wall -mkernel -nostdlib -r -lcc_kext
++
++CFLAGS += $(foreach a,$(VALID_ARCHS),-arch $a)
++LDFLAGS += $(foreach a,$(VALID_ARCHS),-arch $a)
++
+ CCFLAGS = $(CFLAGS)
+-LDFLAGS = -Wall -mkernel -nostdlib -r -lcc_kext -arch ppc -arch i386 -arch x86_64 -Xlinker -kext
+ 
+ CCP = g++
+ CC = gcc
+ 
++ifeq ($(SDKVERSION), 10.6)
++	LDFLAGS += -Xlinker -kext
++endif
++
++ifeq ($(SDKVERSION), 10.4)
++	CCP = g++-4.0
++	CC = gcc-4.0
++endif
++
+ all: $(KMOD_BIN) bundle
+ 
+ .c.o:
+@@ -55,4 +79,3 @@ bundle:	$(KMOD_BIN)
+ clean:
+ 	-rm -f $(OBJS) $(KMOD_BIN)
+ 	-rm -rf $(BUNDLE_DIR)/$(BUNDLE_NAME)
+-
+diff --git src/tun/Makefile src/tun/Makefile
+index 8c19d8d..6081cb1 100644
+--- src/tun/Makefile
++++ src/tun/Makefile
+@@ -6,6 +6,13 @@
+ # (c) 2004, 2005, 2006, 2007, 2008 Mattias Nissler
+ #
+ 
++SDKROOT ?= $(shell ls -d /Developer/SDKs/* | tail -1)
++SDKVERSION = $(shell defaults read $(SDKROOT)/SDKSettings Version)
++
++MACOSX_DEPLOYMENT_TARGET ?= 10.4
++
++VALID_ARCHS ?= ppc i386 x86_64
++
+ OBJS = ../tuntap.o ../tuntap_mgr.o ../lock.o ../mem.o \
+ 	kmod.o tun_inet_proto.o tun_inet6_proto.o tun.o
+ KMOD_BIN = tun
+@@ -20,17 +27,34 @@ BUNDLE_SIGNATURE = ????
+ BUNDLE_PACKAGETYPE = KEXT
+ BUNDLE_VERSION = $(TUN_KEXT_VERSION)
+ 
+-INCLUDE = -I.. -I/System/Library/Frameworks/Kernel.framework/Headers
++INCLUDE = -I.. -I$(SDKROOT)/System/Library/Frameworks/Kernel.framework/Headers
++
+ CFLAGS = -Wall -mkernel -force_cpusubtype_ALL \
+-	-fno-builtin -fno-stack-protector -arch ppc -arch i386 -arch x86_64 \
++	-fno-builtin -fno-stack-protector \
++	-isysroot $(SDKROOT) \
++	-mmacosx-version-min=$(MACOSX_DEPLOYMENT_TARGET) \
+ 	-DKERNEL -D__APPLE__ -DKERNEL_PRIVATE -DTUNTAP_VERSION=\"$(TUNTAP_VERSION)\" \
+ 	-DTUN_KEXT_VERSION=\"$(TUN_KEXT_VERSION)\"
++
++LDFLAGS = -Wall -mkernel -nostdlib -r -lcc_kext
++
++CFLAGS += $(foreach a,$(VALID_ARCHS),-arch $a)
++LDFLAGS += $(foreach a,$(VALID_ARCHS),-arch $a)
++
+ CCFLAGS = $(CFLAGS)
+-LDFLAGS = -Wall -mkernel -nostdlib -r -lcc_kext -arch ppc -arch i386 -arch x86_64 -Xlinker -kext
+ 
+ CCP = g++
+ CC = gcc
+ 
++ifeq ($(SDKVERSION), 10.6)
++	LDFLAGS += -Xlinker -kext
++endif
++
++ifeq ($(SDKVERSION), 10.4)
++	CCP = g++-4.0
++	CC = gcc-4.0
++endif
++
+ all: $(KMOD_BIN) bundle
+ 
+ .c.o:
+@@ -56,4 +80,3 @@ bundle:	$(KMOD_BIN)
+ clean:
+ 	-rm -f $(OBJS) $(KMOD_BIN)
+ 	-rm -rf $(BUNDLE_DIR)/$(BUNDLE_NAME)
+-
+diff --git src/tuntap.cc src/tuntap.cc
+index 143d94a..e5ac93b 100644
+--- src/tuntap.cc
++++ src/tuntap.cc
+@@ -75,7 +75,11 @@ tuntap_if_output(ifnet_t ifp, mbuf_t m)
+ }
+ 
+ errno_t
++#ifdef AVAILABLE_MAC_OS_X_VERSION_10_6_AND_LATER
+ tuntap_if_ioctl(ifnet_t ifp, long unsigned int cmd, void *arg)
++#else
++tuntap_if_ioctl(ifnet_t ifp, u_int32_t cmd, void *arg)
++#endif
+ {
+ 	if (ifp != NULL) {
+ 		tuntap_interface *ttif = (tuntap_interface *) ifnet_softc(ifp);
+diff --git src/tuntap.h src/tuntap.h
+index e025abd..467ef76 100644
+--- src/tuntap.h
++++ src/tuntap.h
+@@ -37,6 +37,8 @@
+ 
+ extern "C" {
+ 
++#include <AvailabilityMacros.h>
++
+ #include <sys/types.h>
+ #include <sys/socket.h>
+ #include <sys/select.h>
+@@ -54,7 +56,13 @@ extern "C" {
+ extern "C" {
+ 
+ errno_t tuntap_if_output(ifnet_t ifp, mbuf_t m);
++
++#ifdef AVAILABLE_MAC_OS_X_VERSION_10_6_AND_LATER
+ errno_t tuntap_if_ioctl(ifnet_t ifp, long unsigned int cmd, void *arg);
++#else
++errno_t tuntap_if_ioctl(ifnet_t ifp, u_int32_t cmd, void *arg);
++#endif
++
+ errno_t tuntap_if_set_bpf_tap(ifnet_t ifp, bpf_tap_mode mode, int (*cb)(ifnet_t, mbuf_t));
+ errno_t tuntap_if_demux(ifnet_t ifp, mbuf_t m, char *header, protocol_family_t *proto);
+ errno_t tuntap_if_framer(ifnet_t ifp, mbuf_t *m, const struct sockaddr *dest,
+@@ -264,7 +272,11 @@ class tuntap_interface {
+ 
+ 		/* interface functions. friends and implementation methods */
+ 		friend errno_t tuntap_if_output(ifnet_t ifp, mbuf_t m);
++#ifdef AVAILABLE_MAC_OS_X_VERSION_10_6_AND_LATER
+ 		friend errno_t tuntap_if_ioctl(ifnet_t ifp, long unsigned int cmd, void *arg);
++#else
++		friend errno_t tuntap_if_ioctl(ifnet_t ifp, u_int32_t cmd, void *arg);
++#endif
+ 		friend errno_t tuntap_if_set_bpf_tap(ifnet_t ifp, bpf_tap_mode mode,
+ 				int (*cb)(ifnet_t, mbuf_t));
+ 		friend errno_t tuntap_if_demux(ifnet_t ifp, mbuf_t m, char *header,
+-- 
+1.7.4.1
+
