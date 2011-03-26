@@ -6,6 +6,8 @@ CC=gcc-4.0
 MACOSX_DEPLOYMENT_TARGET ?= 10.4
 SDKROOT ?= /Developer/SDKs/MacOSX10.4u.sdk
 
+VALID_ARCHS ?= ppc i386
+
 CFLAGS=-isysroot $(SDKROOT) -Os -mmacosx-version-min=$(MACOSX_DEPLOYMENT_TARGET)
 
 TOPDIR = $(PWD)
@@ -65,7 +67,7 @@ openssl: openssl-patch
 	rm -rf $(BUILD_DIR)/staging/$(OPENSSL_SRC_DIR)/darwin*
 	
 pkcs11-helper::
-	@for a in ppc i386; do \
+	@for a in $(VALID_ARCHS); do \
 		echo Configure PKCS11-Helper for $$a; \
 		cd $(PKCS11_DIR); \
 		echo Forcefully be clean; \
@@ -86,7 +88,7 @@ pkcs11-helper-clean:
 	rm -rf $(PKCS11_DIR)/staging*
 
 lzo::
-	@for a in ppc i386; do \
+	@for a in $(VALID_ARCHS); do \
 		echo Configure LZO for $$a; \
 		cd $(LZO_DIR); \
 		echo Forcefully be clean; \
@@ -118,7 +120,7 @@ openvpn-patch:
 	done
 
 openvpn: lzo openssl pkcs11-helper openvpn-patch
-	for a in ppc i386; do \
+	for a in $(VALID_ARCHS); do \
 		echo Configure OpenVPN for $$a; \
 		cd openvpn/; \
 		echo Forcefully be clean; \
