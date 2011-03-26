@@ -2,8 +2,9 @@
 # It shouldn't be called by anything other than automated scripts
 
 CC=gcc-4.0
-MACOSX_DEPLOYMENT_TARGET=10.4
-SDKROOT=/Developer/SDKs/MacOSX10.4u.sdk
+
+MACOSX_DEPLOYMENT_TARGET ?= 10.4
+SDKROOT ?= /Developer/SDKs/MacOSX10.4u.sdk
 
 CFLAGS=-isysroot $(SDKROOT) -Os -mmacosx-version-min=$(MACOSX_DEPLOYMENT_TARGET)
 
