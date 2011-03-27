@@ -1,18 +1,27 @@
-Index: plugin/down-root/Makefile
-===================================================================
---- plugin/down-root/Makefile	(revision 224)
-+++ plugin/down-root/Makefile	(working copy)
-@@ -5,13 +5,17 @@
+From 3c1712ff9ef5585c4193107a91499e34a3249405 Mon Sep 17 00:00:00 2001
+From: Roman Busyghin <nskboy@gmail.com>
+Date: Mon, 28 Mar 2011 02:54:14 +0400
+Subject: Unified build process of down-root plugin
+
+
+Signed-off-by: Roman Busyghin <nskboy@gmail.com>
+
+diff --git plugin/down-root/Makefile plugin/down-root/Makefile
+index 5ce4ffb..9a15395 100755
+--- plugin/down-root/Makefile
++++ plugin/down-root/Makefile
+@@ -5,13 +5,18 @@
  # This directory is where we will look for openvpn-plugin.h
  INCLUDE=-I../..
  
 -CC_FLAGS=-O2 -Wall
-+CC=gcc-4.0
-+MACOSX_DEPLOYMENT_TARGET=10.4
-+SDK=/Developer/SDKs/MacOSX10.4u.sdk
- 
-+CC_FLAGS=-Wall -isysroot $(SDK) -Os -mmacosx-version-min=$(MACOSX_DEPLOYMENT_TARGET) -arch i386 -arch ppc
++CC ?= gcc-4.2
++MACOSX_DEPLOYMENT_TARGET ?= 10.4
++VALID_ARCHS ?= ppc i386
++CC_FLAGS_ARCHS = $(foreach a, $(VALID_ARCHS),-arch $(a))
 +
++CC_FLAGS=-Wall -isysroot $(SDKROOT) -Os -mmacosx-version-min=$(MACOSX_DEPLOYMENT_TARGET) $(CC_FLAGS_ARCHS)
+ 
  down-root.so : down-root.o
 -	gcc ${CC_FLAGS} -fPIC -shared -Wl,-soname,openvpn-down-root.so -o openvpn-down-root.so down-root.o -lc
 +	$(CC) ${CC_FLAGS} -fPIC -bundle -Wl,-dylib_install_name,openvpn-down-root.so -o openvpn-down-root.so down-root.o -lc
@@ -23,3 +32,6 @@ Index: plugin/down-root/Makefile
  
  clean :
  	rm -f *.o *.so
+-- 
+1.7.4.1
+
