@@ -636,19 +636,20 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "if [ $CONFIGURATION = \"Release\" ]; then\n\n\n# Staging folder\nTMPDMG=build/Release/Tunnelblick\n\n# Folder with files for the .dmg (.DS_Store, background folder which contains background.png background image)\nDMG_FILES=dmgFiles\n\n# Remove the existing \"staging\" folder and copy Tunnelblick.app into it\nrm -rf $TMPDMG\nmkdir -p $TMPDMG\ncp -p -R build/Release/Tunnelblick.app $TMPDMG\n\n# Copy link to documentation to the staging folder\ncp -p \"Online Documentation.webloc\" $TMPDMG\n\n# Copy the background folder and its background.png file, then name the folder invisible in the Finder\ncp -p -R $DMG_FILES/background $TMPDMG\nsetfile -a -V \"$TMPDMG/background\"\n\n# Copy dotDS_Store to .DS_Store and make it invisible in the Finder\ncp -p -R $DMG_FILES/dotDS_Store \"$TMPDMG/.DS_Store\"\nsetfile -a -V \"$TMPDMG/.DS_Store\"\n\n# Remove any existing .dmg and create a new one. Specify \"-noscrub\" so that .DS_Store is copied to the image\nrm -rf build/Release/Tunnelblick.dmg\nhdiutil create -noscrub -srcfolder $TMPDMG build/Release/Tunnelblick.dmg\n\n\nfi";
+			shellScript = "if [ $CONFIGURATION = \"Release\" ]; then\n\n\n# Staging folder\nTMPDMG=build/Release/Tunnelblick\n\n# Folder with files for the .dmg (.DS_Store, background folder which contains background.png background image)\nDMG_FILES=dmgFiles\n\n# Remove the existing \"staging\" folder and copy Tunnelblick.app into it\nrm -rf $TMPDMG\nmkdir -p $TMPDMG\ncp -p -R build/Release/Tunnelblick.app $TMPDMG\n\n# Copy link to documentation to the staging folder\ncp -p \"Online Documentation.webloc\" $TMPDMG\n\n# Copy the background folder and its background.png file, then name the folder invisible in the Finder\ncp -p -R $DMG_FILES/background $TMPDMG\nsetfile -a V \"$TMPDMG/background\"\n\n# Copy dotDS_Store to .DS_Store and make it invisible in the Finder\ncp -p -R $DMG_FILES/dotDS_Store \"$TMPDMG/.DS_Store\"\nsetfile -a V \"$TMPDMG/.DS_Store\"\n\n# Remove any existing .dmg and create a new one. Specify \"-noscrub\" so that .DS_Store is copied to the image\nrm -rf build/Release/Tunnelblick.dmg\nhdiutil create -noscrub -srcfolder $TMPDMG build/Release/Tunnelblick.dmg\n\n\nfi";
 		};
-		616A49200E38D17500477476 /* ShellScript */ = {
+		616A49200E38D17500477476 /* Run Script */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			inputPaths = (
 			);
+			name = "Run Script";
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/bash;
+			shellPath = "/bin/bash -x";
 			shellScript = "cd ../third_party/\n\n# Check whether third parties have been built\nif [ -e built ]; then\n\texit 0\nfi\n\n# The following line is needed so make openssl works\nCOMMAND_MODE=unix2003\n\n# If third parties have been configured then it is allowed\n# to clean it\nmake --dry-run clean >/dev/null 2>&1 \nif [ $? -eq 0 ] ; then\n    make clean\nfi\n\nmake\n\nif [ $? -eq 0 ] ; then\n    touch built\nelse\n    exit 1\nfi";
 		};
 /* End PBXShellScriptBuildPhase section */
