@@ -8,6 +8,9 @@ SDKROOT ?= /Developer/SDKs/MacOSX10.4u.sdk
 
 VALID_ARCHS ?= ppc i386
 
+openssl_arch_from_sys_arch = darwin$(and $(filter %64,$(1)),64)-$(patsubst ppc64,ppc,$(1))-cc
+OPENSSL_VALID_ARCHS = $(foreach a, $(VALID_ARCHS), $(call openssl_arch_from_sys_arch,$(a)))
+
 CFLAGS=-isysroot $(SDKROOT) -Os -mmacosx-version-min=$(MACOSX_DEPLOYMENT_TARGET)
 
 TOPDIR = $(PWD)
@@ -46,7 +49,7 @@ openssl-patch: $(OPENSSL_BUILD_DIR)
 	fi
 
 openssl: openssl-patch
-	@for a in darwin-i386-cc darwin-ppc-cc; do\
+	@for a in $(OPENSSL_VALID_ARCHS); do\
 		echo Configure OpenSSL for $$a; \
 		cd $(OPENSSL_BUILD_DIR); \
 		echo Forcefully be clean; \
@@ -58,8 +61,16 @@ openssl: openssl-patch
 		$(MAKE) install_sw; \
 		cd -; \
 	done
-	ditto -v $(BUILD_DIR)/staging/$(OPENSSL_SRC_DIR)/darwin-i386-cc/include $(OPENSSL_DEST_DIR)/include/i386
-	ditto -v $(BUILD_DIR)/staging/$(OPENSSL_SRC_DIR)/darwin-ppc-cc/include $(OPENSSL_DEST_DIR)/include/ppc
+	
+	$(foreach a, $(VALID_ARCHS), \
+		OPENSSL_ARCH=$(call openssl_arch_from_sys_arch,$(a)) ; \
+		ditto -v $(BUILD_DIR)/staging/$(OPENSSL_SRC_DIR)/$$OPENSSL_ARCH/include $(OPENSSL_DEST_DIR)/include/$$a ; \
+		if [ $$? -ne 0 ] ; then \
+			echo Cant copy header files OpenSSL for $$OPENSSL_ARCH; \
+			exit 1 ; \
+		fi ; \
+	) 
+	
 	mkdir -p $(OPENSSL_DEST_DIR)/lib; \
 	for t in $(OPENSSL_TARGET_FILES); do \
 		lipo $(BUILD_DIR)/staging/$(OPENSSL_SRC_DIR)/darwin*/lib/$$(basename $$t) -create -output $$t; \
