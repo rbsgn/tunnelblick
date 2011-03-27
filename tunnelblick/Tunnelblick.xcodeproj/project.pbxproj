@@ -868,6 +868,7 @@
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
 				MACOSX_DEPLOYMENT_TARGET = 10.4;
+				"MACOSX_DEPLOYMENT_TARGET[sdk=macosx*][arch=x86_64]" = 10.5;
 				PRODUCT_NAME = Tunnelblick;
 				SDKROOT = "$(DEVELOPER_SDK_DIR)/MacOSX10.6.sdk";
 				WRAPPER_EXTENSION = app;
@@ -890,6 +891,7 @@
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
 				MACOSX_DEPLOYMENT_TARGET = 10.4;
+				"MACOSX_DEPLOYMENT_TARGET[sdk=macosx*][arch=x86_64]" = 10.5;
 				PRODUCT_NAME = Tunnelblick;
 				SDKROOT = "$(DEVELOPER_SDK_DIR)/MacOSX10.6.sdk";
 				WRAPPER_EXTENSION = app;
