@@ -78,7 +78,7 @@ openvpn-patch:
 		fi \
 	done
 
-openvpn: lzo pkcs11-helper
+openvpn: lzo pkcs11-helper openvpn-patch
 	for a in $(VALID_ARCHS); do \
 		echo Configure OpenVPN for $$a; \
 		cd openvpn/; \
