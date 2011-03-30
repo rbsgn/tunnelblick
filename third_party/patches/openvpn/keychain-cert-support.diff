@@ -1,6 +1,6 @@
-From 5bf68a27c9202f92e551cb97cc51ae7e623a66d6 Mon Sep 17 00:00:00 2001
+From 1fd304687ba109143030afbf79583ffe4148bf1b Mon Sep 17 00:00:00 2001
 From: Roman Busyghin <nskboy@gmail.com>
-Date: Mon, 28 Mar 2011 02:28:45 +0400
+Date: Wed, 30 Mar 2011 09:12:37 +0400
 Subject: Ability to lookup system keychain to load VPN certificate
 
 This patch is created by Brian Raderman <brian@irregularexpression.org> and modified a bit in order to fit Tunnelblick's build infrastructure.
@@ -12,7 +12,7 @@ index 24649cd..1d1b07a 100644
 --- Makefile.am
 +++ Makefile.am
 @@ -141,6 +141,14 @@ openvpn_SOURCES = \
- 	win32.h win32.c \x
+ 	win32.h win32.c \
  	cryptoapi.h cryptoapi.c
  
 +if APPLE
@@ -1018,10 +1018,10 @@ index 0000000..b4fc8ee
 +#endif //__crypto_osx_h__
 diff --git keychain.c keychain.c
 new file mode 100644
-index 0000000..4ab8b72
+index 0000000..915f58d
 --- /dev/null
 +++ keychain.c
-@@ -0,0 +1,274 @@
+@@ -0,0 +1,280 @@
 +/*
 + * File: keyhchain.c.  Original was named cryptoapi.c.
 + *
@@ -1204,6 +1204,12 @@ index 0000000..4ab8b72
 +		SSLerr(SSL_F_SSL_CTX_USE_CERTIFICATE_FILE, ERR_R_MALLOC_FAILURE);
 +		goto err;
 +    }
++
++	OSStatus result = 0;
++	result = SecKeychainSetUserInteractionAllowed(FALSE);
++	printf("SecKeychainSetUserInteractionAllowed returned %d", result);
++	result = SecKeychainUnlock(NULL, 0, NULL, FALSE);
++	printf("SecKeychainSetUserInteractionAllowed returned %d", result);
 +	
 +	CertDataRef pCertDataTemplate = createCertDataFromString(cert_prop);
 +	identity = findIdentity(pCertDataTemplate);
