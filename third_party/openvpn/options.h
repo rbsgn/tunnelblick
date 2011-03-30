@@ -489,8 +489,10 @@ struct options
   bool pkcs11_id_management;
 #endif
 
-#ifdef WIN32
+#if defined(WIN32)
   const char *cryptoapi_cert;
+#elif defined(__APPLE__)
+  const char *keychain_cert;
 #endif
 
   /* data channel key exchange method */

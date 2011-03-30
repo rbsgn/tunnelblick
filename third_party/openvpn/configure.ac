@@ -43,7 +43,11 @@ AC_ARG_WITH(cygwin-native,
 
 WIN32="no"
 CYGWIN="no"
+APPLE="no"
 case "${host}" in
+	*darwin*)
+		APPLE="yes"
+	;;
 	*-mingw*)
 		WIN32="yes"
 		cross_compiling="yes"
@@ -305,6 +309,8 @@ case "$target" in
 	dnl some Mac OS X tendering (we use vararg macros...)
 	AC_DEFINE(TARGET_DARWIN, 1, [Are we running on Mac OS X?])
 	CPPFLAGS="$CPPFLAGS -no-cpp-precomp"
+	CFLAGS="$CFLAGS -D__APPLE__"
+	LDFLAGS="$LDFLAGS -framework CoreFoundation -framework Security"
 	;;
 *mingw*)
 	AC_DEFINE(TARGET_WIN32, 1, [Are we running WIN32?])
@@ -899,6 +905,7 @@ AC_SUBST(TAP_WIN32_MIN_MINOR)
 win32datadir="\${datadir}/${PACKAGE}-win32"
 AC_SUBST(win32datadir)
 AM_CONDITIONAL(WIN32, test "${WIN32}" = "yes")
+AM_CONDITIONAL(APPLE, test "${APPLE}" = "yes")
 
 # workaround for <autoconf-2.60
 if test -z "${docdir}"; then

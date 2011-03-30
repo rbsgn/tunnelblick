@@ -53,6 +53,10 @@
 #include "cryptoapi.h"
 #endif
 
+#ifdef __APPLE__
+#include "keychain.h"
+#endif
+
 #include "memdbg.h"
 
 #ifndef ENABLE_OCC
@@ -1591,7 +1595,7 @@ init_ssl (const struct options *options)
       else
 #endif
 
-#ifdef WIN32
+#if defined(WIN32)
       if (options->cryptoapi_cert)
 	{
 	  /* Load Certificate and Private Key */
@@ -1600,6 +1604,15 @@ init_ssl (const struct options *options)
 		 options->cryptoapi_cert);
 	}
       else
+#elif defined(__APPLE__)
+	if (options->keychain_cert)
+	{
+	  /* Load Certificate and Private Key */
+	  if (!SSL_CTX_use_Keychain_certificate (ctx, options->keychain_cert))
+		  msg (M_SSLERR, "Cannot load certificate \"%s\" from Mac OSX Keychain",
+			   options->keychain_cert);
+	}
+	else
 #endif
 	{
 	  /* Load Certificate */

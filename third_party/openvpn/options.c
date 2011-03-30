@@ -503,9 +503,12 @@ static const char usage_message[] =
   "--key file      : Local private key in .pem format.\n"
   "--pkcs12 file   : PKCS#12 file containing local private key, local certificate\n"
   "                  and optionally the root CA certificate.\n"
-#ifdef WIN32
+#if defined(WIN32)
   "--cryptoapicert select-string : Load the certificate and private key from the\n"
   "                  Windows Certificate System Store.\n"
+#elif defined(__APPLE__)
+  "--keychaincert  select-string : Load the certificate and private key from the\n"
+  "                  Mac OSX Keychain.\n"
 #endif
   "--tls-cipher l  : A list l of allowable TLS ciphers separated by : (optional).\n"
   "                : Use --show-tls to see a list of supported TLS ciphers.\n"
@@ -1328,8 +1331,10 @@ show_settings (const struct options *o)
   SHOW_STR (cert_file);
   SHOW_STR (priv_key_file);
   SHOW_STR (pkcs12_file);
-#ifdef WIN32
+#if defined(WIN32)
   SHOW_STR (cryptoapi_cert);
+#elif defined(__APPLE__)
+	SHOW_STR (keychain_cert);
 #endif
   SHOW_STR (cipher_list);
   SHOW_STR (tls_verify);
@@ -1984,15 +1989,18 @@ options_postprocess_verify_ce (const struct options *options, const struct conne
 	  msg(M_USAGE, "Parameter --key cannot be used when --pkcs11-provider is also specified.");
 	if (options->pkcs12_file)
 	  msg(M_USAGE, "Parameter --pkcs12 cannot be used when --pkcs11-provider is also specified.");
-#ifdef WIN32
+#if defined(WIN32)
 	if (options->cryptoapi_cert)
 	  msg(M_USAGE, "Parameter --cryptoapicert cannot be used when --pkcs11-provider is also specified.");
+#elif defined(__APPLE__)
+	if (options->keychain_cert)
+	   msg(M_USAGE, "Parameter --keychaincert cannot be used when --pkcs11-provider is also specified.");
 #endif
        }
       else
 #endif
-#ifdef WIN32
-      if (options->cryptoapi_cert)
+#if defined(WIN32)
+	if (options->cryptoapi_cert)
 	{
 	  if ((!(options->ca_file)) && (!(options->ca_path)))
 	    msg(M_USAGE, "You must define CA file (--ca) or CA path (--capath)");
@@ -2003,9 +2011,24 @@ options_postprocess_verify_ce (const struct options *options, const struct conne
           if (options->pkcs12_file)
 	    msg(M_USAGE, "Parameter --pkcs12 cannot be used when --cryptoapicert is also specified.");
 	}
-      else
+	else
+#elif defined(__APPLE__)
+	if (options->keychain_cert)
+	{
+		if ((!(options->ca_file)) && (!(options->ca_path)))
+			msg(M_USAGE, "You must define CA file (--ca) or CA path (--capath)");
+		if (options->cert_file)
+			msg(M_USAGE, "Parameter --cert cannot be used when --keychaincert is also specified.");
+		if (options->priv_key_file)
+			msg(M_USAGE, "Parameter --key cannot be used when --keychaincert is also specified.");
+		if (options->pkcs12_file)
+			msg(M_USAGE, "Parameter --pkcs12 cannot be used when --keychaincert is also specified.");
+        if (options->daemon)
+            msg(M_USAGE, "Parameter --daemon cannot be used when --keychaincert is also specified.");
+	}
+	else
 #endif
-      if (options->pkcs12_file)
+       if (options->pkcs12_file)
         {
           if (options->ca_path)
 	    msg(M_USAGE, "Parameter --capath cannot be used when --pkcs12 is also specified.");
@@ -5658,12 +5681,18 @@ add_option (struct options *options,
 	}
 #endif
     }
-#ifdef WIN32
+#if defined(WIN32)
   else if (streq (p[0], "cryptoapicert") && p[1])
     {
       VERIFY_PERMISSION (OPT_P_GENERAL);
       options->cryptoapi_cert = p[1];
     }
+#elif defined(__APPLE__)
+  else if (streq (p[0], "keychaincert") && p[1])
+  {
+      VERIFY_PERMISSION (OPT_P_GENERAL);
+      options->keychain_cert = p[1];
+  }
 #endif
   else if (streq (p[0], "key") && p[1])
     {

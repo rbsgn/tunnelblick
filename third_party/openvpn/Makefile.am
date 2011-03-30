@@ -141,6 +141,14 @@ openvpn_SOURCES = \
 	win32.h win32.c \
 	cryptoapi.h cryptoapi.c
 
+if APPLE
+openvpn_SOURCES += \
+	cert_data.c cert_data.h \
+	common_osx.c common_osx.h \
+	crypto_osx.c crypto_osx.h \
+	keychain.c keychain.h
+
+endif
 
 dist-hook:
 	cd $(distdir) && for i in $(EXTRA_DIST) $(SUBDIRS) ; do find $$i -name .svn -type d -prune -exec rm -rf '{}' ';' ; rm -f `find $$i -type f | grep -E '(^|\/)\.?\#|\~$$|\.s?o$$'` ; done
