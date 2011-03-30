@@ -1021,7 +1021,7 @@ new file mode 100644
 index 0000000..4ab8b72
 --- /dev/null
 +++ keychain.c
-@@ -0,0 +1,279 @@
+@@ -0,0 +1,274 @@
 +/*
 + * File: keyhchain.c.  Original was named cryptoapi.c.
 + *
@@ -1204,12 +1204,6 @@ index 0000000..4ab8b72
 +		SSLerr(SSL_F_SSL_CTX_USE_CERTIFICATE_FILE, ERR_R_MALLOC_FAILURE);
 +		goto err;
 +    }
-+ OSStatus result = 0;
-+ result = SecKeychainSetUserInteractionAllowed(FALSE);
-+ printf("SecKeychainSetUserInteractionAllowed returned %d", result);
-+ result = SecKeychainUnlock(NULL, 0, NULL, FALSE);
-+ printf("SecKeychainSetUserInteractionAllowed returned %d", result);
-+
 +	
 +	CertDataRef pCertDataTemplate = createCertDataFromString(cert_prop);
 +	identity = findIdentity(pCertDataTemplate);
