@@ -2023,8 +2023,6 @@ options_postprocess_verify_ce (const struct options *options, const struct conne
 			msg(M_USAGE, "Parameter --key cannot be used when --keychaincert is also specified.");
 		if (options->pkcs12_file)
 			msg(M_USAGE, "Parameter --pkcs12 cannot be used when --keychaincert is also specified.");
-        if (options->daemon)
-            msg(M_USAGE, "Parameter --daemon cannot be used when --keychaincert is also specified.");
 	}
 	else
 #endif
